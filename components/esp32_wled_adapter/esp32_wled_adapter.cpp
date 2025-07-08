@@ -49,7 +49,7 @@ void WLEDUDPComponent::loop() {
   if (received_bytes < 0) return;
 
   // Parse received data as RGB triplets
-  int led_count = this->light_strip_->size();
+  int led_count = this->addressable_light->size();
   int max_possible_leds = received_bytes / 3;
   int leds_to_update = std::min(led_count, max_possible_leds);
 
