@@ -1,6 +1,6 @@
 {
   "name": "esp32_wled_adapter",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "esphome": "2024.6.0",
   "dependencies": ["esphome", "esp32_rmt_led_strip"],
   "native": true,
