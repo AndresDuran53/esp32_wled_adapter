@@ -1,0 +1,8 @@
+{
+  "name": "esp32_wled_adapter",
+  "version": "0.0.1",
+  "esphome": "2025.6.0",
+  "dependencies": [
+    "esphome"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "ESP32 WLED Adapter",
+  "version": "1.0.0",
+  "dependencies": [],
+  "documentation": "https://github.com/AndresDuran53/esp32_wled_adapter",
+  "sources": [
+    {
+      "name": "esp32_wled_adapter",
+      "source_type": "external_component",
+      "path": ".",
+      "type": "cpp"
+    }
+  ]
+}
