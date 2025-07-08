@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import light
-from esphome.components.esp32_rmt_led_strip import AddressableLight
+from esphome.components.light import AddressableLight
 from esphome.const import CONF_ID, CONF_PORT, CONF_LIGHT_ID
 
 DEPENDENCIES = ['network', 'esp32_rmt_led_strip']
