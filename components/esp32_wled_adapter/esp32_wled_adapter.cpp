@@ -49,7 +49,7 @@ void WLEDUDPComponent::loop() {
   if (received_bytes < 0) return;
 
   // Parse received data as RGB triplets
-  int led_count = this->addressable_light->size();
+  int led_count = addressable_light->size();
   int max_possible_leds = received_bytes / 3;
   int leds_to_update = std::min(led_count, max_possible_leds);
 
@@ -58,7 +58,7 @@ void WLEDUDPComponent::loop() {
     Color led_color(udp_buffer[buffer_position], 
                     udp_buffer[buffer_position + 1], 
                     udp_buffer[buffer_position + 2]);
-    addressable_light->set_pixel(led_index, led_color);
+    addressable_light->set_pixel_at(led_index, led_color);
   }
   addressable_light->schedule_show();
 }
