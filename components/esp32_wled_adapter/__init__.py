@@ -4,7 +4,7 @@ from esphome.components import light
 from esphome.components.light import AddressableLight
 from esphome.const import CONF_ID, CONF_PORT, CONF_LIGHT_ID
 
-DEPENDENCIES = ['network', 'esp32_rmt_led_strip']
+DEPENDENCIES = ['network']
 AUTO_LOAD = ['light']
 
 esp32_wled_adapter_ns = cg.esphome_ns.namespace('esp32_wled_adapter')
