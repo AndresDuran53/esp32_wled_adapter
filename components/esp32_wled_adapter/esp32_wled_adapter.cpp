@@ -11,47 +11,56 @@ static const char* const TAG = "esp32_wled_adapter";
 void WLEDUDPComponent::setup() {
   ESP_LOGI(TAG, "Setting up UDP listener on port %d", this->port_);
 
-  this->sock_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-  if (this->sock_ < 0) {
+  this->socket_fd_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+  if (this->socket_fd_ < 0) {
     ESP_LOGE(TAG, "Failed to create socket: errno %d", errno);
     return;
   }
 
-  struct sockaddr_in dest_addr;
-  dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  dest_addr.sin_family = AF_INET;
-  dest_addr.sin_port = htons(this->port_);
+  struct sockaddr_in listen_address;
+  listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
+  listen_address.sin_family = AF_INET;
+  listen_address.sin_port = htons(this->port_);
 
-  if (bind(this->sock_, (struct sockaddr*)&dest_addr, sizeof(dest_addr)) < 0) {
+  if (bind(this->socket_fd_, (struct sockaddr*)&listen_address, sizeof(listen_address)) < 0) {
     ESP_LOGE(TAG, "Socket unable to bind: errno %d", errno);
-    close(this->sock_);
+    close(this->socket_fd_);
     return;
   }
 
-  fcntl(this->sock_, F_SETFL, O_NONBLOCK);
+  fcntl(this->socket_fd_, F_SETFL, O_NONBLOCK);
 }
 
 void WLEDUDPComponent::loop() {
-  if (this->sock_ < 0) return;
+  if (this->socket_fd_ < 0) return;
 
-  uint8_t recv_buf[2048];
-  struct sockaddr_in source_addr;
-  socklen_t socklen = sizeof(source_addr);
+  auto light_output = this->light_strip_->get_output();
+  if (light_output == nullptr) return;
 
-  int len = recvfrom(this->sock_, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*)&source_addr, &socklen);
-  if (len < 0) return;
+  auto addressable_light = static_cast<light::AddressableLight*>(light_output);
+  if (addressable_light == nullptr) return;
+
+  uint8_t udp_buffer[2048];
+  struct sockaddr_in sender_address;
+  socklen_t address_length = sizeof(sender_address);
+
+  int received_bytes = recvfrom(this->socket_fd_, udp_buffer, sizeof(udp_buffer), 0, 
+                                (struct sockaddr*)&sender_address, &address_length);
+  if (received_bytes < 0) return;
 
   // Parse received data as RGB triplets
-  int num_leds = this->strip_->size();
-  int max_leds = len / 3;
-  int leds_to_update = (num_leds < max_leds) ? num_leds : max_leds;
+  int led_count = this->light_strip_->size();
+  int max_possible_leds = received_bytes / 3;
+  int leds_to_update = std::min(led_count, max_possible_leds);
 
-  for (int i = 0; i < leds_to_update; i++) {
-    int idx = i * 3;
-    Color c(recv_buf[idx], recv_buf[idx+1], recv_buf[idx+2]);
-    this->strip_->set_pixel(i, c);
+  for (int led_index = 0; led_index < leds_to_update; led_index++) {
+    int buffer_position = led_index * 3;
+    Color led_color(udp_buffer[buffer_position], 
+                    udp_buffer[buffer_position + 1], 
+                    udp_buffer[buffer_position + 2]);
+    addressable_light->set_pixel(led_index, led_color);
   }
-  this->strip_->schedule_show();
+  addressable_light->schedule_show();
 }
 
 }  // namespace esp32_wled_adapter
