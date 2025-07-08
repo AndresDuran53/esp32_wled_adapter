@@ -58,7 +58,7 @@ void WLEDUDPComponent::loop() {
     int buffer_position = led_index * 3;
     
     // Crear un objeto Color con los valores RGB recibidos
-    light::Color led_color;
+    esphome::Color led_color;
 
     auto pixel = this->strip_->get(led_index);
     pixel.set(Color(udp_buffer[buffer_position], udp_buffer[buffer_position + 1], udp_buffer[buffer_position + 2]));
