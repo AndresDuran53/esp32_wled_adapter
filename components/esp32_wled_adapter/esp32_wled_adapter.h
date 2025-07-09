@@ -16,6 +16,7 @@ class WLEDUDPComponent : public Component {
 
   void setup() override;
   void loop() override;
+  ~WLEDUDPComponent() override; // Add destructor declaration
 
  protected:
   void open_udp_socket_();
