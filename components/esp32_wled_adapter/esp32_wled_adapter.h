@@ -18,6 +18,7 @@ class WLEDUDPComponent : public Component {
   void loop() override;
 
  protected:
+  void open_udp_socket_();
   light::AddressableLightState* light_strip_{nullptr};
   int socket_fd_{-1};
   uint16_t port_{0};
