@@ -61,18 +61,27 @@ void WLEDUDPComponent::loop() {
   auto addressable_light = static_cast<light::AddressableLight*>(light_output);
   if (addressable_light == nullptr) return;
 
+  // Check if the light strip is on
+  if (!this->light_strip_->current_values.is_on()) {
+    ESP_LOGD(TAG, "UDP ignored: Light strip is OFF");
+    return;
+  }
+
   // Effect/UDP handoff logic
   std::string current_effect = this->light_strip_->get_effect_name();
   uint32_t now = millis();
   if (current_effect != "None") {
+    ESP_LOGD(TAG, "UDP ignored: Effect active (%s), waiting 1.5s after effect ends", current_effect.c_str());
     this->effect_end_time_ = now;
     this->waiting_udp_transition = true;
     return;
   } else if (this->waiting_udp_transition) {
     // Only start UDP after 1.5s of effect being None
     if (now - this->effect_end_time_ < 1500) {
+      ESP_LOGD(TAG, "UDP ignored: Waiting for 1.5s after effect ended (%.2fs elapsed)", (now - this->effect_end_time_) / 1000.0f);
       return;
     } else {
+      ESP_LOGD(TAG, "UDP allowed: 1.5s after effect ended");
       this->waiting_udp_transition = false;
     }
   }
