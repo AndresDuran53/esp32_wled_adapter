@@ -86,10 +86,10 @@ void WLEDUDPComponent::loop() {
   // WLED packets start with 0x01 and have a specific header format
   // 0xE0 indicates a WLED packet with RGB data and 0xF0 indicates the packet type
   if (received_bytes >= 2 && udp_buffer[0] == 0x01 && (udp_buffer[1] == 0xE0 && ((received_bytes - 2) % 3 == 0))) {
-    ESP_LOGD(TAG, "Received WLED UDP packet");
+    // ESP_LOGD(TAG, "Received WLED UDP packet");
     data_offset = 2;  // Skip header
   } else {
-    ESP_LOGD(TAG, "Received raw UDP packet");
+    // ESP_LOGD(TAG, "Received raw UDP packet");
     data_offset = 0;  // No header to skip
   }
 
