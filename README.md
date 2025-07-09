@@ -8,22 +8,25 @@ To use this external component in your ESPHome configuration, add the following 
 
 ```yaml
 external_components:
-  - source: github://AndresDuran53/esp32_wled_adapter@main
-    components: [esp32_wled_adapter]
+  source:
+    type: git
+    url: https://github.com/AndresDuran53/esp32_wled_adapter
+
 
 # Component configuration
 esp32_wled_adapter:
-  port: 21324  # UDP port (default for WLED is 21324)
-  light_id: my_addressable_light  # ID of your LED strip
+  port: 21324  # Standard WLED UDP port
+  light_id: led_strip
 
 # Your LED strip
 light:
-  - platform: neopixelbus
-    id: my_addressable_light
-    type: GRB
-    pin: GPIO2
-    num_leds: 60
-    name: "My LED Strip"
+  - platform: esp32_rmt_led_strip
+    id: led_strip
+    name: "Strip Lights"
+    chipset: ws2811
+    pin: GPIO47
+    num_leds: 61
+    rgb_order: GRB
 ```
 
 ## Usage

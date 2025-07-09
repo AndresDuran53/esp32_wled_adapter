@@ -3,9 +3,9 @@ esphome:
   friendly_name: WLED Receiver
 
 esp32:
-  board: esp32dev
+  board: esp32-s3-devkitc-1
   framework:
-    type: arduino
+    type: esp-idf
 
 # Enable WiFi
 wifi:
@@ -25,24 +25,26 @@ api:
   password: !secret api_password
 
 ota:
-  password: !secret ota_password
+  - platform: esphome
+    password: !secret ota_password
 
 # Load the ESP32 WLED Adapter external component
 external_components:
-  - source: github://AndresDuran53/esp32_wled_adapter@main
-    components: [esp32_wled_adapter]
-
-# Define an addressable LED strip (Example with WS2812B)
-light:
-  - platform: neopixelbus
-    type: GRB
-    variant: WS2812
-    pin: GPIO2
-    num_leds: 60
-    name: "LED Strip"
-    id: led_strip
+  source:
+    type: git
+    url: https://github.com/AndresDuran53/esp32_wled_adapter
 
 # Configure the ESP32 WLED Adapter component
 esp32_wled_adapter:
   port: 21324  # Standard WLED UDP port
   light_id: led_strip
+
+# Define an addressable LED strip (Example with WS2812B)
+light:
+  - platform: esp32_rmt_led_strip
+    id: led_strip
+    name: "Strip Lights"
+    chipset: ws2811
+    pin: GPIO47
+    num_leds: 61
+    rgb_order: GRB

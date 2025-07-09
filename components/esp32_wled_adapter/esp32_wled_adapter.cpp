@@ -3,11 +3,19 @@
 #include "esphome/components/esp32_rmt_led_strip/led_strip.h"
 #include <lwip/sockets.h>
 #include <errno.h>
+#include <unistd.h>  // For close()
 
 namespace esphome {
 namespace esp32_wled_adapter {
 
 static const char* const TAG = "esp32_wled_adapter";
+
+WLEDUDPComponent::~WLEDUDPComponent() {
+  if (this->socket_fd_ >= 0) {
+    close(this->socket_fd_);
+    this->socket_fd_ = -1;
+  }
+}
 
 void WLEDUDPComponent::setup() {
   ESP_LOGI(TAG, "WLEDUDPComponent setup() called");
@@ -15,6 +23,10 @@ void WLEDUDPComponent::setup() {
 }
 
 void WLEDUDPComponent::open_udp_socket_() {
+  if (this->socket_fd_ >= 0) {
+    close(this->socket_fd_);
+    this->socket_fd_ = -1;
+  }
   ESP_LOGI(TAG, "Setting up UDP listener on port %d", this->port_);
   this->socket_fd_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (this->socket_fd_ < 0) {
@@ -35,11 +47,10 @@ void WLEDUDPComponent::open_udp_socket_() {
 }
 
 void WLEDUDPComponent::loop() {
-  // Crear el socket UDP si no está creado
+  // If the socket is not open, try to open it
   if (this->socket_fd_ < 0) {
     this->open_udp_socket_();
   }
-
   if (this->socket_fd_ < 0) return;
 
   // Get the LED strip output
@@ -56,7 +67,15 @@ void WLEDUDPComponent::loop() {
   // Receive UDP data
   int received_bytes = recvfrom(this->socket_fd_, udp_buffer, sizeof(udp_buffer), 0, 
                                 (struct sockaddr*)&sender_address, &address_length);
-  if (received_bytes < 0) return;
+
+  // If there is a serious error, close the socket to try to reopen it in the next loop
+  if (received_bytes < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
+    ESP_LOGE(TAG, "Socket error on recvfrom: errno %d", errno);
+    close(this->socket_fd_);
+    this->socket_fd_ = -1;
+    return;
+  }
+  if (received_bytes <= 0) return;
 
   // Calculate how many LEDs can be updated
   int led_count = addressable_light->size();
