@@ -61,6 +61,12 @@ void WLEDUDPComponent::loop() {
   auto addressable_light = static_cast<light::AddressableLight*>(light_output);
   if (addressable_light == nullptr) return;
 
+  // Check if there is an active effect
+  auto *state = addressable_light->state_parent_;
+  if (state != nullptr && state->get_effect_name() != "None") {
+    return;
+  }
+
   uint8_t udp_buffer[2048];
   struct sockaddr_in sender_address;
   socklen_t address_length = sizeof(sender_address);
