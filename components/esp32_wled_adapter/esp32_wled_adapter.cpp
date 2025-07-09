@@ -62,7 +62,7 @@ void WLEDUDPComponent::loop() {
   if (addressable_light == nullptr) return;
 
   // Check if there is an active effect
-  if (this->light_strip_.get_effect_name() != "None") {
+  if (this->light_strip_->get_effect_name() != "None") {
     return;
   }
 
