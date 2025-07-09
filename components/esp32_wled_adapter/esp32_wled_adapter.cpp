@@ -3,7 +3,7 @@
 #include "esphome/components/esp32_rmt_led_strip/led_strip.h"
 #include <lwip/sockets.h>
 #include <errno.h>
-#include <unistd.h>  // For close()
+#include <unistd.h>
 
 namespace esphome {
 namespace esp32_wled_adapter {
@@ -57,6 +57,7 @@ void WLEDUDPComponent::loop() {
   auto light_output = this->light_strip_->get_output();
   if (light_output == nullptr) return;
 
+  // Get the addressable light from the esp32_rmt_led_strip output
   auto addressable_light = static_cast<light::AddressableLight*>(light_output);
   if (addressable_light == nullptr) return;
 
@@ -79,14 +80,31 @@ void WLEDUDPComponent::loop() {
 
   // Calculate how many LEDs can be updated
   int led_count = addressable_light->size();
-  int leds_received = received_bytes / 3;
+  int data_offset = 0;
+
+  // Detect UDP packet type
+  // WLED packets start with 0x01 and have a specific header format
+  // 0xE0 indicates a WLED packet with RGB data and 0xF0 indicates the packet type
+  if (received_bytes >= 2 && udp_buffer[0] == 0x01 && (udp_buffer[1] == 0xE0 %% ((received_bytes - 2) % 3 == 0))) {
+    ESP_LOGD(TAG, "Received WLED UDP packet");
+    data_offset = 2;  // Skip header
+  } else {
+    ESP_LOGD(TAG, "Received raw UDP packet");
+    data_offset = 0;  // No header to skip
+  }
+
+  int leds_received = (received_bytes - data_offset) / 3;
   int leds_to_update = std::min(led_count, leds_received);
 
   // Update LEDs with received RGB data
   for (int led_index = 0; led_index < leds_to_update; led_index++) {
-    int buffer_position = led_index * 3;
+    int buffer_position = data_offset + (led_index * 3);
     auto pixel = addressable_light->get(led_index);
-    pixel.set(Color(udp_buffer[buffer_position], udp_buffer[buffer_position + 1], udp_buffer[buffer_position + 2]));
+    pixel.set(Color(
+      udp_buffer[buffer_position],
+      udp_buffer[buffer_position + 1],
+      udp_buffer[buffer_position + 2]
+    ));
   }
 
   // Schedule LED strip update
