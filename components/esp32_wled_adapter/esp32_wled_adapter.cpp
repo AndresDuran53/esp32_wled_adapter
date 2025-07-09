@@ -61,9 +61,20 @@ void WLEDUDPComponent::loop() {
   auto addressable_light = static_cast<light::AddressableLight*>(light_output);
   if (addressable_light == nullptr) return;
 
-  // Check if there is an active effect
-  if (this->light_strip_->get_effect_name() != "None") {
+  // Effect/UDP handoff logic
+  std::string current_effect = this->light_strip_->get_effect_name();
+  uint32_t now = millis();
+  if (current_effect != "None") {
+    this->effect_end_time_ = now;
+    this->waiting_udp_transition = true;
     return;
+  } else if (this->waiting_udp_transition) {
+    // Only start UDP after 1.5s of effect being None
+    if (now - this->effect_end_time_ < 1500) {
+      return;
+    } else {
+      this->waiting_udp_transition = false;
+    }
   }
 
   uint8_t udp_buffer[2048];

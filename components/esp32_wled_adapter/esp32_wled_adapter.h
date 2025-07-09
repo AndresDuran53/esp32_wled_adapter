@@ -16,13 +16,15 @@ class WLEDUDPComponent : public Component {
 
   void setup() override;
   void loop() override;
-  ~WLEDUDPComponent(); // Remove override, not needed for destructor
+  ~WLEDUDPComponent();
 
  protected:
   void open_udp_socket_();
   light::AddressableLightState* light_strip_{nullptr};
   int socket_fd_{-1};
   uint16_t port_{0};
+  uint32_t effect_end_time_{0};
+  bool waiting_udp_transition{false};
 };
 
 }  // namespace esp32_wled_adapter
