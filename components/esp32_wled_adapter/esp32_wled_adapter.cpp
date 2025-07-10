@@ -69,27 +69,28 @@ void WLEDUDPComponent::loop() {
 
   // Effect/UDP handoff logic
   std::string current_effect = this->light_strip_->get_effect_name();
-  if (current_effect != "WLED UDP Effect") {
-    this->is_effect_active = false;
-    return;
-  }
 
-  /*uint32_t now = millis();
-  if (current_effect != "None") {
-    //ESP_LOGD(TAG, "UDP ignored: Effect active (%s), waiting 1.5s after effect ends", current_effect.c_str());
+  uint32_t now = millis();
+  if (current_effect != "WLED UDP Effect") {
+    ESP_LOGD(TAG, "UDP ignored: Effect active (%s), waiting 1.5s after effect ends", current_effect.c_str());
     this->effect_end_time_ = now;
     this->waiting_udp_transition = true;
     return;
   } else if (this->waiting_udp_transition) {
     // Only start UDP after 1.5s of effect being None
     if (now - this->effect_end_time_ < 1500) {
-      //ESP_LOGD(TAG, "UDP ignored: Waiting for 1.5s after effect ended (%.2fs elapsed)", (now - this->effect_end_time_) / 1000.0f);
+      ESP_LOGD(TAG, "UDP ignored: Waiting for 1.5s after effect ended (%.2fs elapsed)", (now - this->effect_end_time_) / 1000.0f);
       return;
     } else {
       ESP_LOGD(TAG, "UDP allowed: 1.5s after effect ended");
       this->waiting_udp_transition = false;
     }
-  }*/
+  }
+
+  if (current_effect != "WLED UDP Effect") {
+    this->is_effect_active = false;
+    return;
+  }
 
   uint8_t udp_buffer[2048];
   struct sockaddr_in sender_address;
