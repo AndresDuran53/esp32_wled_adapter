@@ -61,10 +61,20 @@ void WLEDUDPComponent::loop() {
   auto addressable_light = static_cast<light::AddressableLight*>(light_output);
   if (addressable_light == nullptr) return;
 
+  // Check if the light strip is on
+  if (!this->light_strip_->current_values.is_on()) {
+    //ESP_LOGD(TAG, "UDP ignored: Light strip is OFF");
+    return;
+  }
+
   // Effect/UDP handoff logic
   std::string current_effect = this->light_strip_->get_effect_name();
+  if (current_effect != "WLED UDP Effect") {
+    this->is_effect_active = false;
+    return;
+  }
 
-  uint32_t now = millis();
+  /*uint32_t now = millis();
   if (current_effect != "WLED UDP Effect") {
     ESP_LOGD(TAG, "UDP ignored: Effect active (%s), waiting 1.5s after effect ends", current_effect.c_str());
     this->effect_end_time_ = now;
@@ -79,18 +89,7 @@ void WLEDUDPComponent::loop() {
       ESP_LOGD(TAG, "UDP allowed: 1.5s after effect ended");
       this->waiting_udp_transition = false;
     }
-  }
-
-  // Check if the light strip is on
-  if (!this->light_strip_->current_values.is_on()) {
-    //ESP_LOGD(TAG, "UDP ignored: Light strip is OFF");
-    return;
-  }
-
-  if (current_effect != "WLED UDP Effect") {
-    this->is_effect_active = false;
-    return;
-  }
+  }*/
 
   uint8_t udp_buffer[2048];
   struct sockaddr_in sender_address;
