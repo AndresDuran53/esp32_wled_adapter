@@ -70,11 +70,9 @@ void WLEDUDPComponent::loop() {
   // Effect/UDP handoff logic
   std::string current_effect = this->light_strip_->get_effect_name();
   if (current_effect != "WLED UDP Effect") {
-    ESP_LOGD(TAG, "[Error] UDP ignored: Effect active (%s), expected WLED UDP Effect", current_effect.c_str());
     this->is_effect_active = false;
     return;
   }
-  ESP_LOGD(TAG, "UDP allowed: Effect active (%s)", current_effect.c_str());
 
   /*uint32_t now = millis();
   if (current_effect != "None") {
