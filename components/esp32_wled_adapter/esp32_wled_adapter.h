@@ -11,8 +11,11 @@ namespace esp32_wled_adapter {
 
 class WLEDUDPComponent : public Component {
  public:
+  bool is_effect_active = false;
+
   void set_strip(light::AddressableLightState* light_strip) { this->light_strip_ = light_strip; }
   void set_port(uint16_t port) { this->port_ = port; }
+  void set_effect_active(bool active) { this->is_effect_active = active; }
 
   void setup() override;
   void loop() override;
